@@ -57,8 +57,9 @@ public class ImmutableListMultimap<K, V> extends ImmutableMultimap<K, V>
    * whose keys and values are the result of applying the provided mapping functions to the input
    * elements.
    *
-   * <p>For streams with {@linkplain java.util.stream#Ordering defined encounter order}, that order
-   * is preserved, but entries are <a href="ImmutableMultimap.html#iteration">grouped by key</a>.
+   * <p>For streams with defined encounter order (as defined in the Ordering section of the {@link
+   * java.util.stream} Javadoc), that order is preserved, but entries are <a
+   * href="ImmutableMultimap.html#iteration">grouped by key</a>.
    *
    * <p>Example:
    *
@@ -79,7 +80,6 @@ public class ImmutableListMultimap<K, V> extends ImmutableMultimap<K, V>
    *
    * @since 21.0
    */
-  @Beta
   public static <T, K, V> Collector<T, ?, ImmutableListMultimap<K, V>> toImmutableListMultimap(
       Function<? super T, ? extends K> keyFunction,
       Function<? super T, ? extends V> valueFunction) {
@@ -123,7 +123,6 @@ public class ImmutableListMultimap<K, V> extends ImmutableMultimap<K, V>
    *
    * @since 21.0
    */
-  @Beta
   public static <T, K, V>
       Collector<T, ?, ImmutableListMultimap<K, V>> flatteningToImmutableListMultimap(
           Function<? super T, ? extends K> keyFunction,

@@ -49,10 +49,10 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -621,9 +621,6 @@ public final class Multimaps {
    * multimap, either directly or through the multimap's views, result in an {@code
    * UnsupportedOperationException}.
    *
-   * <p>Note that the generated multimap's {@link Multimap#removeAll} and {@link
-   * Multimap#replaceValues} methods return collections that are modifiable.
-   *
    * <p>The returned multimap will be serializable if the specified multimap is serializable.
    *
    * @param delegate the multimap for which an unmodifiable view is to be returned
@@ -650,11 +647,11 @@ public final class Multimaps {
   private static class UnmodifiableMultimap<K, V> extends ForwardingMultimap<K, V>
       implements Serializable {
     final Multimap<K, V> delegate;
-    @MonotonicNonNull transient Collection<Entry<K, V>> entries;
-    @MonotonicNonNull transient Multiset<K> keys;
-    @MonotonicNonNull transient Set<K> keySet;
-    @MonotonicNonNull transient Collection<V> values;
-    @MonotonicNonNull transient Map<K, Collection<V>> map;
+    transient @Nullable Collection<Entry<K, V>> entries;
+    transient @Nullable Multiset<K> keys;
+    transient @Nullable Set<K> keySet;
+    transient @Nullable Collection<V> values;
+    transient @Nullable Map<K, Collection<V>> map;
 
     UnmodifiableMultimap(final Multimap<K, V> delegate) {
       this.delegate = checkNotNull(delegate);
@@ -696,6 +693,11 @@ public final class Multimaps {
         entries = result = unmodifiableEntries(delegate.entries());
       }
       return result;
+    }
+
+    @Override
+    public void forEach(BiConsumer<? super K, ? super V> consumer) {
+      delegate.forEach(checkNotNull(consumer));
     }
 
     @Override
@@ -884,9 +886,6 @@ public final class Multimaps {
    * multimap, either directly or through the multimap's views, result in an {@code
    * UnsupportedOperationException}.
    *
-   * <p>Note that the generated multimap's {@link Multimap#removeAll} and {@link
-   * Multimap#replaceValues} methods return collections that are modifiable.
-   *
    * <p>The returned multimap will be serializable if the specified multimap is serializable.
    *
    * @param delegate the multimap for which an unmodifiable view is to be returned
@@ -933,9 +932,6 @@ public final class Multimaps {
    * returned multimap, either directly or through the multimap's views, result in an {@code
    * UnsupportedOperationException}.
    *
-   * <p>Note that the generated multimap's {@link Multimap#removeAll} and {@link
-   * Multimap#replaceValues} methods return collections that are modifiable.
-   *
    * <p>The returned multimap will be serializable if the specified multimap is serializable.
    *
    * @param delegate the multimap for which an unmodifiable view is to be returned
@@ -966,9 +962,6 @@ public final class Multimaps {
    * returned multimap "read through" to the specified multimap, and attempts to modify the returned
    * multimap, either directly or through the multimap's views, result in an {@code
    * UnsupportedOperationException}.
-   *
-   * <p>Note that the generated multimap's {@link Multimap#removeAll} and {@link
-   * Multimap#replaceValues} methods return collections that are modifiable.
    *
    * <p>The returned multimap will be serializable if the specified multimap is serializable.
    *
@@ -1219,7 +1212,7 @@ public final class Multimaps {
     public Set<Entry<K, V>> entries() {
       return map.entrySet();
     }
-    
+
     @Override
     Collection<Entry<K, V>> createEntries() {
       throw new AssertionError("unreachable");
@@ -1493,7 +1486,7 @@ public final class Multimaps {
     public boolean containsKey(Object key) {
       return fromMultimap.containsKey(key);
     }
-    
+
     @Override
     Collection<Entry<K, V2>> createEntries() {
       return new Entries();

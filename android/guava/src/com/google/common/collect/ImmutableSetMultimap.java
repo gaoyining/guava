@@ -35,7 +35,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.checkerframework.checker.nullness.compatqual.MonotonicNonNullDecl;
 import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 /**
@@ -357,8 +356,7 @@ public class ImmutableSetMultimap<K, V> extends ImmutableMultimap<K, V>
     return MoreObjects.firstNonNull(set, emptySet);
   }
 
-  @LazyInit @MonotonicNonNullDecl @RetainedWith
-  private transient ImmutableSetMultimap<V, K> inverse;
+  @LazyInit @RetainedWith @NullableDecl private transient ImmutableSetMultimap<V, K> inverse;
 
   /**
    * {@inheritDoc}
@@ -366,9 +364,8 @@ public class ImmutableSetMultimap<K, V> extends ImmutableMultimap<K, V>
    * <p>Because an inverse of a set multimap cannot contain multiple pairs with the same key and
    * value, this method returns an {@code ImmutableSetMultimap} rather than the {@code
    * ImmutableMultimap} specified in the {@code ImmutableMultimap} class.
-   *
-   * @since 11.0
    */
+  @Override
   public ImmutableSetMultimap<V, K> inverse() {
     ImmutableSetMultimap<V, K> result = inverse;
     return (result == null) ? (inverse = invert()) : result;
@@ -410,7 +407,7 @@ public class ImmutableSetMultimap<K, V> extends ImmutableMultimap<K, V>
     throw new UnsupportedOperationException();
   }
 
-  @MonotonicNonNullDecl private transient ImmutableSet<Entry<K, V>> entries;
+  @LazyInit @RetainedWith @NullableDecl private transient ImmutableSet<Entry<K, V>> entries;
 
   /**
    * Returns an immutable collection of all key-value pairs in the multimap. Its iterator traverses
@@ -491,7 +488,7 @@ public class ImmutableSetMultimap<K, V> extends ImmutableMultimap<K, V>
         ? ((ImmutableSortedSet<V>) emptySet).comparator()
         : null;
   }
-  
+
   @GwtIncompatible // java serialization
   private static final class SetFieldSettersHolder {
     static final Serialization.FieldSetter<ImmutableSetMultimap> EMPTY_SET_FIELD_SETTER =

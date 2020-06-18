@@ -16,7 +16,6 @@ package com.google.common.util.concurrent;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import com.google.common.annotations.Beta;
 import com.google.common.annotations.GwtCompatible;
 import com.google.common.annotations.GwtIncompatible;
 import com.google.common.base.Preconditions;
@@ -30,6 +29,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Utilities for treating interruptible operations as uninterruptible. In all cases, if a thread is
@@ -39,7 +39,6 @@ import java.util.concurrent.locks.Condition;
  * @author Anthony Zana
  * @since 10.0
  */
-@Beta
 @GwtCompatible(emulated = true)
 public final class Uninterruptibles {
 
@@ -72,6 +71,7 @@ public final class Uninterruptibles {
    */
   @CanIgnoreReturnValue // TODO(cpovirk): Consider being more strict.
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static boolean awaitUninterruptibly(CountDownLatch latch, long timeout, TimeUnit unit) {
     boolean interrupted = false;
     try {
@@ -101,6 +101,7 @@ public final class Uninterruptibles {
    * @since 23.6
    */
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static boolean awaitUninterruptibly(Condition condition, long timeout, TimeUnit unit) {
     boolean interrupted = false;
     try {
@@ -147,6 +148,7 @@ public final class Uninterruptibles {
    * uninterruptibly.
    */
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static void joinUninterruptibly(Thread toJoin, long timeout, TimeUnit unit) {
     Preconditions.checkNotNull(toJoin);
     boolean interrupted = false;
@@ -225,6 +227,7 @@ public final class Uninterruptibles {
    */
   @CanIgnoreReturnValue
   @GwtIncompatible // TODO
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static <V> V getUninterruptibly(Future<V> future, long timeout, TimeUnit unit)
       throws ExecutionException, TimeoutException {
     boolean interrupted = false;
@@ -297,6 +300,7 @@ public final class Uninterruptibles {
   // TODO(user): Support Sleeper somehow (wrapper or interface method)?
   /** Invokes {@code unit.}{@link TimeUnit#sleep(long) sleep(sleepFor)} uninterruptibly. */
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static void sleepUninterruptibly(long sleepFor, TimeUnit unit) {
     boolean interrupted = false;
     try {
@@ -326,6 +330,7 @@ public final class Uninterruptibles {
    * @since 18.0
    */
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static boolean tryAcquireUninterruptibly(
       Semaphore semaphore, long timeout, TimeUnit unit) {
     return tryAcquireUninterruptibly(semaphore, 1, timeout, unit);
@@ -338,6 +343,7 @@ public final class Uninterruptibles {
    * @since 18.0
    */
   @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
   public static boolean tryAcquireUninterruptibly(
       Semaphore semaphore, int permits, long timeout, TimeUnit unit) {
     boolean interrupted = false;
@@ -349,6 +355,35 @@ public final class Uninterruptibles {
         try {
           // Semaphore treats negative timeouts just like zero.
           return semaphore.tryAcquire(permits, remainingNanos, NANOSECONDS);
+        } catch (InterruptedException e) {
+          interrupted = true;
+          remainingNanos = end - System.nanoTime();
+        }
+      }
+    } finally {
+      if (interrupted) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+
+  /**
+   * Invokes {@code lock.}{@link Lock#tryLock(long, TimeUnit) tryLock(timeout, unit)}
+   * uninterruptibly.
+   *
+   * @since NEXT
+   */
+  @GwtIncompatible // concurrency
+  @SuppressWarnings("GoodTime") // should accept a java.time.Duration
+  public static boolean tryLockUninterruptibly(Lock lock, long timeout, TimeUnit unit) {
+    boolean interrupted = false;
+    try {
+      long remainingNanos = unit.toNanos(timeout);
+      long end = System.nanoTime() + remainingNanos;
+
+      while (true) {
+        try {
+          return lock.tryLock(remainingNanos, NANOSECONDS);
         } catch (InterruptedException e) {
           interrupted = true;
           remainingNanos = end - System.nanoTime();
