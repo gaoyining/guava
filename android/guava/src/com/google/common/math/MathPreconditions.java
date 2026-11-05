@@ -17,7 +17,7 @@ package com.google.common.math;
 import com.google.common.annotations.GwtCompatible;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.math.BigInteger;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import java.math.RoundingMode;
 
 /**
  * A collection of preconditions for math functions.
@@ -25,51 +25,57 @@ import org.checkerframework.checker.nullness.compatqual.NullableDecl;
  * @author Louis Wasserman
  */
 @GwtCompatible
-@CanIgnoreReturnValue
 final class MathPreconditions {
-  static int checkPositive(@NullableDecl String role, int x) {
+  @CanIgnoreReturnValue
+  static int checkPositive(String role, int x) {
     if (x <= 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be > 0");
     }
     return x;
   }
 
-  static long checkPositive(@NullableDecl String role, long x) {
+  @CanIgnoreReturnValue
+  static long checkPositive(String role, long x) {
     if (x <= 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be > 0");
     }
     return x;
   }
 
-  static BigInteger checkPositive(@NullableDecl String role, BigInteger x) {
+  @CanIgnoreReturnValue
+  static BigInteger checkPositive(String role, BigInteger x) {
     if (x.signum() <= 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be > 0");
     }
     return x;
   }
 
-  static int checkNonNegative(@NullableDecl String role, int x) {
+  @CanIgnoreReturnValue
+  static int checkNonNegative(String role, int x) {
     if (x < 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be >= 0");
     }
     return x;
   }
 
-  static long checkNonNegative(@NullableDecl String role, long x) {
+  @CanIgnoreReturnValue
+  static long checkNonNegative(String role, long x) {
     if (x < 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be >= 0");
     }
     return x;
   }
 
-  static BigInteger checkNonNegative(@NullableDecl String role, BigInteger x) {
+  @CanIgnoreReturnValue
+  static BigInteger checkNonNegative(String role, BigInteger x) {
     if (x.signum() < 0) {
       throw new IllegalArgumentException(role + " (" + x + ") must be >= 0");
     }
     return x;
   }
 
-  static double checkNonNegative(@NullableDecl String role, double x) {
+  @CanIgnoreReturnValue
+  static double checkNonNegative(String role, double x) {
     if (!(x >= 0)) { // not x < 0, to work with NaN.
       throw new IllegalArgumentException(role + " (" + x + ") must be >= 0");
     }
@@ -82,9 +88,10 @@ final class MathPreconditions {
     }
   }
 
-  static void checkInRange(boolean condition) {
+  static void checkInRangeForRoundingInputs(boolean condition, double input, RoundingMode mode) {
     if (!condition) {
-      throw new ArithmeticException("not in range");
+      throw new ArithmeticException(
+          "rounded value is out of range for input " + input + " and rounding mode " + mode);
     }
   }
 
